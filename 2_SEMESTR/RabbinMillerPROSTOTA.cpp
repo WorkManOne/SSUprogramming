@@ -1,51 +1,61 @@
-﻿#include <iostream>
-#include <time.h>
+#include <iostream>
+#include <cmath>
 using namespace std;
 
-unsigned powmod(unsigned base, unsigned exp, unsigned modulo)
+int modexp(int a, int m, int n)
 {
-	unsigned res = 1;
-
-	while (exp != 0)
-	{
-		if ((exp & 1) != 0)
-		{
-			res = (1ll * res * base) % modulo;
-		}
-
-		base = (1ll * base * base) % modulo;
-		exp >>= 1;
-	}
-
-	return res;
+	if (m == 0) return 1;
+	int z = modexp(a, m / 2, n);
+	if (m % 2 == 0)
+		return (z * z) % n;
+	else
+		return (a * z * z) % n;
 }
 
-bool check(long int n, int k) {
-	if (n == 2 || n == 3) return true;
-	if (n < 2 || n % 2) return false;
-
-	long int d = n - 1;
-	int s = 0;
-	while (d % 2 == 0) {
-		d /= 2;
-		s++;
-	}
-	for (int i = 0; i < k; i++) {
-		srand(time(0));
-		long int a = 2 + rand() % (n - 2);
-		long int x = powmod(a, d, n);
-		if (x == 1 || x == n - 1) continue;
-		for (int r = 1; r < s; r++) {
-			x = powmod(x, 2, n);
-			if (x == 1) return false;
-			if (x == n - 1) break;
+int Miller_Rabin(int n,int r) {
+	int m = n-1, k = 0;
+	while (m > 0) {
+		m /= 2;
+		k++;
+		if (m % 2 != 0) {
+			break;
 		}
-		if (x != n - 1) return false;
 	}
-	return true;
+	cout << "Разложение числа n - 1 : 2^" << k << "*" << m << endl;
+	while (r) {
+		int a = (rand() % (n-2)) + 2;
+		cout << "Рандомное число : " << a << endl;
+		int x = modexp(a, m, n); // âîçâåäåíèÿ â ñòåïåíü ïî ìîäóëþ
+		cout << "Возведения в степень по модулю (a^m mod n) : " << x << endl;
+		if (x == 1) {
+			return 1;
+		}
+		if (x == n - 1) {
+			for (int i = 0; i < k; i++) {
+				x = modexp(a, m * (2 ^ i), n);
+				cout << "Возведения в степень по модулю (a^((2^i)*m) mod n) : " << x << endl;
+				if (x == n-1) {
+					return 1;
+				}
+			}
+		}
+		r--;
+	}
+	return 0;
 }
 
 int main() {
-	cout << check(7, 10);
+	setlocale(LC_ALL, "RUS");
+	int n, r;
+	cout << "Введите число >3: " << endl;
+	cin >> n;
+	cout << "Введите кол-во раундов:" << endl;
+	cin >> r;
+	if (Miller_Rabin(n,r)) {
+		cout << "Вероятно простое" << endl;
+	}
+	else {
+		cout << "Составное" << endl;
+	}
 	return 0;
 }
